@@ -1,5 +1,6 @@
 /*
-
+Import library from "https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library/blob/master/README.md" to connect with display
+How to read write data from SD card "https://docs.arduino.cc/learn/programming/sd-guide"
 */
 int ldr = A0;
 
