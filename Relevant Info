@@ -1,0 +1,20 @@
+Number Pin Label Description
+1 VCC 5V/3.3V power input
+2 GND Ground
+3 CS LCD chip select signal, low level enable
+4 RESET LCD reset signal, low level reset
+5 DC/RS LCD register / data selection signal,
+high level: register, low level: data
+
+6 SDI(MOSI) SPI bus write data signal
+7 SCK SPI bus clock signal
+8 LED Backlight control, high level lighting,
+if not controlled, connect 3.3V always bright
+
+9 SDO(MISO) SPI bus read data signal, if you do not need to the read function, you can not connect it
+(The following is the touch screen signal line wiring, if you do not need to touch function or the module itself does not have touch function, you can not connect them)
+10 T_CLK Touch SPI bus clock signal
+11 T_CS Touch screen chip select signal, low level enable
+12 T_DIN Touch SPI bus input
+13 T_DO Touch SPI bus output
+14 T_IRQ Touch screen interrupt signal, low level when touch is detected see less
