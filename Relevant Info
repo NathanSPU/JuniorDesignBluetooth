@@ -18,3 +18,6 @@ if not controlled, connect 3.3V always bright
 12 T_DIN Touch SPI bus input
 13 T_DO Touch SPI bus output
 14 T_IRQ Touch screen interrupt signal, low level when touch is detected see less
+
+https://docs.arduino.cc/learn/built-in-libraries/software-serial
+// Potential required Serial Library
