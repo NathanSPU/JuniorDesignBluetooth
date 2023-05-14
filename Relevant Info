@@ -21,3 +21,13 @@ if not controlled, connect 3.3V always bright
 
 https://docs.arduino.cc/learn/built-in-libraries/software-serial
 // Potential required Serial Library
+
+Mega
+
+Serial Pins: 0(RX), 1(TX)
+
+Serial1 Pins: 19(RX), 18(TX)
+
+Serial2 Pins: 17(RX), 16(TX)
+
+Serial3 Pins: 15(RX), 14(TX)
