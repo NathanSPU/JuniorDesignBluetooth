@@ -27,7 +27,7 @@ void loop() {     // During loop..
   delay(1000);
   tft.setCursor(10, 10);
   tft.setTextSize(3);
-  tft.drawRect(0,0, 240, 70, ILI9341_WHITE);
+  //tft.drawRect(0,0, 240, 70, ILI9341_WHITE);
   tft.println(celsius);
   tft.setCursor(5, 40);
   tft.setTextSize(2);
