@@ -1,7 +1,3 @@
-/*
-Import library from "https://github.com/fdebrabander/Arduino-LiquidCrystal-I2C-library/blob/master/README.md" to connect with display
-How to read write data from SD card "https://docs.arduino.cc/learn/programming/sd-guide"
-*/
 #include "SPI.h"
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h"
@@ -35,14 +31,14 @@ void setup() {
   }
 }
 
-void loop() {     // During loop..
+void loop() {     // During loop...
   Wire.beginTransmission( mpuAddress);
   Wire.write( 0x3B);                   // Starting with register 0x3B (ACCEL_XOUT_H)
   Wire.endTransmission( false);        // No stop condition for a repeated start
 
   int16_t AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ;
 
-  Wire.requestFrom( mpuAddress, 14);   // request a total of 12 bytes
+  Wire.requestFrom( mpuAddress, 14);   // request a total of 14 bytes
   AcX = Wire.read()<<8 | Wire.read();  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)    
   AcY = Wire.read()<<8 | Wire.read();  // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
   AcZ = Wire.read()<<8 | Wire.read();  // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
@@ -62,17 +58,17 @@ void loop() {     // During loop..
   tft.println("Degree C");
 
   tft.setCursor(140, 60);
-  tft.println(AcX*9.80665);
+  tft.println(AcX); //9.8065
   tft.setCursor(5,60);
   tft.println("Accel in x");
 
   tft.setCursor(140, 80);
-  tft.println(AcY*9.80665);
+  tft.println(AcY); //9.8065
   tft.setCursor(5,80);
   tft.println("Accel in y");
 
   tft.setCursor(140, 100);
-  tft.println(AcZ*9.80665);
+  tft.println(AcZ); //9.8065
   tft.setCursor(5,100);
   tft.println("Accel in z");
 
@@ -91,7 +87,7 @@ void loop() {     // During loop..
   tft.setCursor(5,160);
   tft.println("Deg/s in z");
 
-  delay(1000);
+  delay(3000);
   tft.fillScreen(0x0000);
   delay(1000);
 
