@@ -1,4 +1,19 @@
+/*
+things you might need later
+
+
+while (!Serial) {
+
+    ; // wait for serial port to connect. Needed for native USB port only
+
+  }
+
+tft.setRotation(90); //I think the software stops you from dislaying things horizontally
+
+*/
+
 #include "SPI.h"
+#include "SD.h"
 #include "Adafruit_GFX.h"
 #include "Adafruit_ILI9341.h"
 #include "Wire.h"
@@ -6,8 +21,10 @@ using namespace std;
 
 #define TFT_DC 53 //should be value of DC pin
 #define TFT_CS 10 //should be value of CS pin
+#define CS_PIN 53 //should be Sd card value of CS pin
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
+File SavedData;
 
 const float BETA = 3950;
 const int mpuAddress = 0x68;   // I2C address of the Accelerometer
@@ -17,7 +34,7 @@ void setup() {
   Serial.begin(9600);
   Wire.begin();
   tft.setTextColor(ILI9341_WHITE);
-  //tft.setRotation(90); I think the software stops you from dislaying things horizontally
+  
   
   // Initialize the MPU-6050 and test if it is connected.
   Wire.beginTransmission( mpuAddress);
@@ -28,6 +45,11 @@ void setup() {
   {
     Serial.println(F( "Error, MPU-6050 not found"));
     for(;;);                                   // halt the sketch if error encountered
+  }
+  
+  if (!SD.begin(CS_PIN)) {
+    Serial.println("Card initialization failed!");
+    while (true);
   }
 }
 
@@ -46,7 +68,6 @@ void loop() {     // During loop...
   GyX = Wire.read()<<8 | Wire.read();  // 0x43 (GYRO_XOUT_H)  & 0x44 (GYRO_XOUT_L)
   GyY = Wire.read()<<8 | Wire.read();  // 0x45 (GYRO_YOUT_H)  & 0x46 (GYRO_YOUT_L)
   GyZ = Wire.read()<<8 | Wire.read();  // 0x47 (GYRO_ZOUT_H)  & 0x48 (GYRO_ZOUT_L)
-
   
   int analogValue = analogRead(A0); //change based on what port we are using
   float celsius = 1 / (log(1 / (1023. / analogValue - 1)) / BETA + 1.0 / 298.15) - 273.15;
@@ -58,17 +79,17 @@ void loop() {     // During loop...
   tft.println("Degree C");
 
   tft.setCursor(140, 60);
-  tft.println(AcX); //9.8065
+  tft.println(AcX/16384*9.8065); //9.8065
   tft.setCursor(5,60);
   tft.println("Accel in x");
 
   tft.setCursor(140, 80);
-  tft.println(AcY); //9.8065
+  tft.println(AcY/16384*9.8065); //9.8065
   tft.setCursor(5,80);
   tft.println("Accel in y");
 
   tft.setCursor(140, 100);
-  tft.println(AcZ); //9.8065
+  tft.println(AcZ/16384*9.8065); //9.8065
   tft.setCursor(5,100);
   tft.println("Accel in z");
 
@@ -87,6 +108,13 @@ void loop() {     // During loop...
   tft.setCursor(5,160);
   tft.println("Deg/s in z");
 
+  SavedData = SD.open("SavedData.txt", FILE_WRITE);
+
+  /*if (SavedData) {
+    SavedData.println(celsius +"," + AcX + "," + AcY + "," + AcZ +"," + GyX +"," + GyY + "," + GyZ +"," )
+    SavedData.close();
+  }
+*/
   delay(3000);
   tft.fillScreen(0x0000);
   delay(1000);
