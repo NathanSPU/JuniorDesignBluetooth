@@ -33,8 +33,9 @@ void setup() {
   sensors.begin();
   mylcd.Fill_Screen(0xFFFF);
   mylcd.Set_Text_Back_colour(0xFFFF);
+  mylcd.Set_Draw_color(0x0000);
   mylcd.Set_Text_colour(0x0000);
-  mylcd.Set_Text_Size(5);
+  mylcd.Set_Text_Size(4);
   mylcd.Set_Rotation(3);
 
     // Initialize the MPU-6050 and test if it is connected.
@@ -98,26 +99,42 @@ void loop() {
   sensors.requestTemperatures();
   float celsius = sensors.getTempCByIndex(0);
   char buffer [7];
+  int numxoffset = 0;
+  int strxoffset = 142;
+  int yoffset = 10;
   // String mystring = dtostrf(celsius,9,2,buffer) + " °C";
-  mylcd.Print_Number_Float(celsius, 2, 40, 6, '.', 6, ' ');
+  mylcd.Set_Text_Size(4);
+
+  mylcd.Print_Number_Float(celsius, 2, numxoffset, 5+yoffset, '.', 6, ' ');
 
   // mystring = AcX + "m/s^2 in x";
-  mylcd.Print(AcX, 40, 80);
+  mylcd.Print_Number_Float(AcX, 2, numxoffset,35+yoffset, '.', 6, ' ');
 
   // mystring = AcY + "m/s^2 in y";
-  mylcd.Print(AcY, 40, 160);
+  mylcd.Print_Number_Float(AcY, 2, numxoffset,65+yoffset, '.', 6, ' ');
 
  // mystring = AcZ + "m/s^2 in z";
-  mylcd.Print(AcZ, 40, 240);
+  mylcd.Print_Number_Float(AcZ, 2, numxoffset,95+yoffset, '.', 6, ' ');
 
  // mystring = GyX + "Deg/s in x";
-  mylcd.Print(GyX, 40, 320);
+  mylcd.Print_Number_Float(GyX, 2, numxoffset,125+yoffset, '.', 6, ' ');
 
 //  mystring = GyY + "Deg/s in y";
-  mylcd.Print(GyY, 40, 400);
-
+  mylcd.Print_Number_Float(GyY, 2, numxoffset,155+yoffset, '.', 6, ' ');
+  
  // mystring = GyZ + "Deg/s in z";
-  mylcd.Print(GyZ, 40, 480);
+  mylcd.Print_Number_Float(GyZ, 2, numxoffset,185+yoffset, '.', 6, ' ');
+  
+  mylcd.Set_Text_Size(3);
+
+  mylcd.Print_String(" C",strxoffset,5+yoffset);
+  mylcd.Draw_Circle(strxoffset+5,5+yoffset,4);
+  mylcd.Print_String("AccX m/s^2",strxoffset,40+yoffset);
+  mylcd.Print_String("AccY m/s^2",strxoffset,70+yoffset);
+  mylcd.Print_String("AccZ m/s^2",strxoffset,100+yoffset);
+  mylcd.Print_String("Deg X",strxoffset,130+yoffset);
+  mylcd.Print_String("Deg Y",strxoffset,160+yoffset);
+  mylcd.Print_String("Deg Z",strxoffset,190+yoffset);
   
   // File textFile = SD.open("wokwi.txt");
   // String mystring = dtostrf(celsius,9,2,7) + ',' + AcX + ',' + AcY +',' + AcZ + ',' + GyX + ',' + GyY + ',' + GyZ;
@@ -138,7 +155,13 @@ void loop() {
   //   Serial.println("error opening wokwi.txt!");
   // }
   
-  delay(1000);
+  delay(2000);
   mylcd.Fill_Screen(0xFFFF);
-  delay(1000);
+
+  mylcd.Set_Text_Size(8);
+  mylcd.Print_Number_Float(GyZ, 2, 0,15, '.', 6, ' ');
+  mylcd.Print_String("m/s",120,100);
+
+  delay(2000);
+  mylcd.Fill_Screen(0xFFFF);
 }
