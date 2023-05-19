@@ -59,17 +59,7 @@ void setup() {
   // printDirectory(root, 0);
   // Serial.println("");
 
-  // // Example of reading file from the card:
-  // File textFile = SD.open("wokwi.txt");
-  // if (textFile) {
-  //   Serial.print("wokwi.txt: ");
-  //   while (textFile.available()) {
-  //     Serial.write(textFile.read());
-  //   }
-  //   textFile.close();
-  // } else {
-  //   Serial.println("error opening wokwi.txt!");
-  // }
+
 }
 
 void loop() {
@@ -107,22 +97,16 @@ void loop() {
 
   mylcd.Print_Number_Float(celsius, 2, numxoffset, 5+yoffset, '.', 6, ' ');
 
-  // mystring = AcX + "m/s^2 in x";
   mylcd.Print_Number_Float(AcX, 2, numxoffset,35+yoffset, '.', 6, ' ');
 
-  // mystring = AcY + "m/s^2 in y";
   mylcd.Print_Number_Float(AcY, 2, numxoffset,65+yoffset, '.', 6, ' ');
 
- // mystring = AcZ + "m/s^2 in z";
   mylcd.Print_Number_Float(AcZ, 2, numxoffset,95+yoffset, '.', 6, ' ');
 
- // mystring = GyX + "Deg/s in x";
   mylcd.Print_Number_Float(GyX, 2, numxoffset,125+yoffset, '.', 6, ' ');
 
-//  mystring = GyY + "Deg/s in y";
   mylcd.Print_Number_Float(GyY, 2, numxoffset,155+yoffset, '.', 6, ' ');
   
- // mystring = GyZ + "Deg/s in z";
   mylcd.Print_Number_Float(GyZ, 2, numxoffset,185+yoffset, '.', 6, ' ');
   
   mylcd.Set_Text_Size(3);
@@ -136,25 +120,24 @@ void loop() {
   mylcd.Print_String("Deg Y",strxoffset,160+yoffset);
   mylcd.Print_String("Deg Z",strxoffset,190+yoffset);
   
-  // File textFile = SD.open("wokwi.txt");
-  // String mystring = dtostrf(celsius,9,2,7) + ',' + AcX + ',' + AcY +',' + AcZ + ',' + GyX + ',' + GyY + ',' + GyZ;
+  File textFile = SD.open("savadata.txt");
+  String mystring = dtostrf(celsius,9,2,7) + ',' + AcX + ',' + AcY +',' + AcZ + ',' + GyX + ',' + GyY + ',' + GyZ;
 
-  // if (textFile) {
-  //   textFile.println(mystring);
-  //   textFile.close();
-  //   //dtostrf(celsius,9,2,space) +',' + dtostrf(FAcX,9,2,space) + ','+ dtostrf(FAcY,9,2,space) + ',' + dtostrf(FAcZ,9,2,space) +',' + dtostrf(FGyX,9,2,space) +',' + dtostrf(FGyY,9,2,space) + ',' + dtostrf(FGyZ,9,2,space) +',' 
-  // }
-  // File writtenFile = SD.open("wokwi.txt");
-  // if (writtenFile) {
-  //   Serial.print("wokwi.txt: ");
-  //   while (writtenFile.available()) {
-  //   Serial.write(writtenFile.read());
-  //   }
-  // writtenFile.close();
-  // } else {
-  //   Serial.println("error opening wokwi.txt!");
-  // }
-  
+  if (textFile) {
+    textFile.println(mystring);
+    textFile.close();
+  }
+  File writtenFile = SD.open("savedata.txt");
+  if (writtenFile) {
+    Serial.print("savedata.txt: ");
+    while (writtenFile.available()) {
+    Serial.write(writtenFile.read());
+    writtenFile.close();
+    }
+  } else {
+    Serial.println("error opening savedata.txt!");
+  }
+
   delay(2000);
   mylcd.Fill_Screen(0xFFFF);
 
