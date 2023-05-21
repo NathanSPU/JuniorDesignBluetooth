@@ -19,6 +19,8 @@ const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 
 SdExFat sd;
 ExFile file;
+int n;
+char buf [40];
 void setup() {
   Serial.begin(9600);
   if (!sd.begin(SD_CONFIG)) {
@@ -27,13 +29,36 @@ void setup() {
     Serial.println("Initialized!");
   }
 
-  if (!file.open("test.txt", O_WRONLY | O_CREAT)) {
-    Serial.println("Could not open!!");
+  if (sd.exists("test.txt")) {
+    sd.remove("test.txt");
+    Serial.println("Deleted last run!");
+  }
+  if (!file.open("test.txt", O_WRONLY | O_CREAT | O_APPEND)) {
+    Serial.println("Could not open for writing!!");
   } 
-  file.println("A test line for test.txt");
+  file.write("A test line for test.txt\n");
   file.close();
+
+  if (!file.open("test.txt", O_WRONLY | O_APPEND)) {
+    Serial.println("Could not open for writing!!");
+  } 
+  file.write("A second test line for test.txt\n");
+  file.close();
+
+  if (!file.open("test.txt", O_RDONLY)) {
+    Serial.println("Could not open for reading!!");
+  }
+  file.rewind();
+  while (file.available()) {
+    n = file.fgets(buf, sizeof(buf));
+    if (n <= 0) {
+      Serial.println("fgets failed:((((");
+    } else {
+      Serial.print(buf);
+    }
+  }
 }
 
+
 void loop() {
-  
 }
