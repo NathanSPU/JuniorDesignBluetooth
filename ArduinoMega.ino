@@ -1,5 +1,4 @@
 #include "SPI.h"
-#include "SD.h"
 #include "LCDWIKI_GUI.h"
 #include "LCDWIKI_SPI.h"
 #include "Wire.h"
@@ -14,6 +13,7 @@ using namespace std;
 #define MOSI  51
 #define MISO  50
 #define SCK   52
+#define CLK   34
 #define LED   A0   //if you don't need to control the LED pin,you should set it to -1 and set it to 3.3V
 #define ONE_WIRE_BUS 15
 
@@ -22,12 +22,8 @@ DallasTemperature sensors(&oneWire);
 
 LCDWIKI_SPI mylcd(MODEL,CS,CD,MISO,MOSI,RST,SCK,LED); //model,cs,dc,miso,mosi,reset,sck,led
 
-File root;
-const float BETA = 3950;
-const int mpuAddress = 0x68;   // I2C address of the Accelerometer
-
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   mylcd.Init_LCD();
   Wire.begin();
   sensors.begin();
@@ -37,62 +33,18 @@ void setup() {
   mylcd.Set_Text_colour(0x0000);
   mylcd.Set_Text_Size(4);
   mylcd.Set_Rotation(3);
-
-    // Initialize the MPU-6050 and test if it is connected.
-  // Wire.beginTransmission( mpuAddress);
-  // Wire.write( 0x6B);                           // PWR_MGMT_1 register
-  // Wire.write( 0);                              // set to zero (wakes up the MPU-6050)
-  // auto error = Wire.endTransmission();
-  // if( error != 0)
-  // {
-  //   Serial.println(F( "Error, MPU-6050 not found"));
-  //   for(;;);                                   // halt the sketch if error encountered
-  // }
-
-  // if (!SD.begin(CS_PIN)) {
-  //   Serial.println("Card initialization failed!");
-  //   while (true);
-  // }
-
-  // Serial.println("Files in the card:");
-  // root = SD.open("/");
-  // printDirectory(root, 0);
-  // Serial.println("");
-
-
 }
 
 void loop() {
-  // Wire.beginTransmission( mpuAddress);
-  // Wire.write( 0x3B);                   // Starting with register 0x3B (ACCEL_XOUT_H)
-  // Wire.endTransmission( false);        // No stop condition for a repeated start
-
   int AcX, AcY, AcZ, Tmp, GyX, GyY, GyZ = 1;
-
-  // Wire.requestFrom( mpuAddress, 14);   // request a total of 14 bytes
-  // AcX = Wire.read()<<8 | Wire.read();  // 0x3B (ACCEL_XOUT_H) & 0x3C (ACCEL_XOUT_L)    
-  // AcY = Wire.read()<<8 | Wire.read();  // 0x3D (ACCEL_YOUT_H) & 0x3E (ACCEL_YOUT_L)
-  // AcZ = Wire.read()<<8 | Wire.read();  // 0x3F (ACCEL_ZOUT_H) & 0x40 (ACCEL_ZOUT_L)
-  // Tmp = Wire.read()<<8 | Wire.read();  // 0x41 (TEMP_OUT_H)   & 0x42 (TEMP_OUT_L)
-  // GyX = Wire.read()<<8 | Wire.read();  // 0x43 (GYRO_XOUT_H)  & 0x44 (GYRO_XOUT_L)
-  // GyY = Wire.read()<<8 | Wire.read();  // 0x45 (GYRO_YOUT_H)  & 0x46 (GYRO_YOUT_L)
-  // GyZ = Wire.read()<<8 | Wire.read();  // 0x47 (GYRO_ZOUT_H)  & 0x48 (GYRO_ZOUT_L)
-
-  // float FAcX = AcX / 16384*9.8;
-  // float FAcY = AcX / 16384*9.8;
-  // float FAcZ = AcX / 16384*9.8;
-  // float FGyX = AcX / 16384;
-  // float FGyY = AcX / 16384;
-  // float FGyZ = AcX / 16384;
   
-  // int analogValue = analogRead(A0); //change based on what port we are using
   sensors.requestTemperatures();
   float celsius = sensors.getTempCByIndex(0);
-  char buffer [7];
+
   int numxoffset = 0;
   int strxoffset = 142;
   int yoffset = 10;
-  // String mystring = dtostrf(celsius,9,2,buffer) + " °C";
+
   mylcd.Set_Text_Size(4);
 
   mylcd.Print_Number_Float(celsius, 2, numxoffset, 5+yoffset, '.', 6, ' ');
@@ -120,24 +72,6 @@ void loop() {
   mylcd.Print_String("Deg Y",strxoffset,160+yoffset);
   mylcd.Print_String("Deg Z",strxoffset,190+yoffset);
   
-  File textFile = SD.open("savadata.txt");
-  String mystring = dtostrf(celsius,9,2,7) + ',' + AcX + ',' + AcY +',' + AcZ + ',' + GyX + ',' + GyY + ',' + GyZ;
-
-  if (textFile) {
-    textFile.println(mystring);
-    textFile.close();
-  }
-  File writtenFile = SD.open("savedata.txt");
-  if (writtenFile) {
-    Serial.print("savedata.txt: ");
-    while (writtenFile.available()) {
-    Serial.write(writtenFile.read());
-    writtenFile.close();
-    }
-  } else {
-    Serial.println("error opening savedata.txt!");
-  }
-
   delay(2000);
   mylcd.Fill_Screen(0xFFFF);
 
