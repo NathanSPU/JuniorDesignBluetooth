@@ -46,30 +46,39 @@ void loop() {
   int yoffset = 10;
 
   mylcd.Set_Text_Size(4);
-
   mylcd.Print_Number_Float(celsius, 2, numxoffset, 5+yoffset, '.', 6, ' ');
-
-  mylcd.Print_Number_Float(AcX, 2, numxoffset,35+yoffset, '.', 6, ' ');
-
-  mylcd.Print_Number_Float(AcY, 2, numxoffset,65+yoffset, '.', 6, ' ');
-
-  mylcd.Print_Number_Float(AcZ, 2, numxoffset,95+yoffset, '.', 6, ' ');
-
-  mylcd.Print_Number_Float(GyX, 2, numxoffset,125+yoffset, '.', 6, ' ');
-
-  mylcd.Print_Number_Float(GyY, 2, numxoffset,155+yoffset, '.', 6, ' ');
-  
-  mylcd.Print_Number_Float(GyZ, 2, numxoffset,185+yoffset, '.', 6, ' ');
-  
   mylcd.Set_Text_Size(3);
-
   mylcd.Print_String(" C",strxoffset,5+yoffset);
   mylcd.Draw_Circle(strxoffset+5,5+yoffset,4);
+  
+  mylcd.Set_Text_Size(4);
+  mylcd.Print_Number_Float(AcX, 2, numxoffset,35+yoffset, '.', 6, ' ');
+  mylcd.Set_Text_Size(3);
   mylcd.Print_String("AccX m/s^2",strxoffset,40+yoffset);
+
+  mylcd.Set_Text_Size(4);
+  mylcd.Print_Number_Float(AcY, 2, numxoffset,65+yoffset, '.', 6, ' ');
+  mylcd.Set_Text_Size(3);
   mylcd.Print_String("AccY m/s^2",strxoffset,70+yoffset);
+
+  mylcd.Set_Text_Size(4);
+  mylcd.Print_Number_Float(AcZ, 2, numxoffset,95+yoffset, '.', 6, ' ');
+  mylcd.Set_Text_Size(3);
   mylcd.Print_String("AccZ m/s^2",strxoffset,100+yoffset);
+
+  mylcd.Set_Text_Size(4);
+  mylcd.Print_Number_Float(GyX, 2, numxoffset,125+yoffset, '.', 6, ' ');
+  mylcd.Set_Text_Size(3);
   mylcd.Print_String("Deg X",strxoffset,130+yoffset);
+
+  mylcd.Set_Text_Size(4);
+  mylcd.Print_Number_Float(GyY, 2, numxoffset,155+yoffset, '.', 6, ' ');
+  mylcd.Set_Text_Size(3);
   mylcd.Print_String("Deg Y",strxoffset,160+yoffset);
+
+  mylcd.Set_Text_Size(4);
+  mylcd.Print_Number_Float(GyZ, 2, numxoffset,185+yoffset, '.', 6, ' ');
+  mylcd.Set_Text_Size(3);
   mylcd.Print_String("Deg Z",strxoffset,190+yoffset);
   
   delay(2000);
