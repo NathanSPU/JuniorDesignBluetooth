@@ -17,6 +17,25 @@ using namespace std;
 #define LED A0  //if you don't need to control the LED pin,you should set it to -1 and set it to 3.3V
 #define ONE_WIRE_BUS 15
 
+#define MPU6050_ACCEL_XOUT_H       0x3B   // R  
+#define MPU6050_ACCEL_XOUT_L       0x3C   // R  
+#define MPU6050_ACCEL_YOUT_H       0x3D   // R  
+#define MPU6050_ACCEL_YOUT_L       0x3E   // R  
+#define MPU6050_ACCEL_ZOUT_H       0x3F   // R  
+#define MPU6050_ACCEL_ZOUT_L       0x40   // R  
+#define MPU6050_TEMP_OUT_H         0x41   // R  
+#define MPU6050_TEMP_OUT_L         0x42   // R  
+#define MPU6050_GYRO_XOUT_H        0x43   // R  
+#define MPU6050_GYRO_XOUT_L        0x44   // R  
+#define MPU6050_GYRO_YOUT_H        0x45   // R  
+#define MPU6050_GYRO_YOUT_L        0x46   // R  
+#define MPU6050_GYRO_ZOUT_H        0x47   // R  
+#define MPU6050_GYRO_ZOUT_L        0x48   // R  
+#define MPU6050_WHO_AM_I           0x75   // R
+#define MPU6050_PWR_MGMT_1         0x6B   // R/W
+#define MPU6050_PWR_MGMT_2         0x6C   // R/
+#define MPU6050_I2C_ADDRESS 0x68
+
 const int MPU = 0x68;  // MPU6050 I2C address
 float AccX, AccY, AccZ;
 float GyroX, GyroY, GyroZ;
@@ -31,6 +50,47 @@ DallasTemperature sensors(&oneWire);
 
 LCDWIKI_SPI mylcd(MODEL, CS, CD, MISO, MOSI, RST, SCK, LED);  //model,cs,dc,miso,mosi,reset,sck,led
 
+// Declaring an union for the registers and the axis values.
+// The byte order does not match the byte order of 
+// the compiler and AVR chip.
+// The AVR chip (on the Arduino board) has the Low Byte 
+// at the lower address.
+// But the MPU-6050 has a different order: High Byte at
+// lower address, so that has to be corrected.
+// The register part "reg" is only used internally, 
+// and are swapped in code.
+typedef union accel_t_gyro_union
+{
+  struct
+  {
+    uint8_t x_accel_h;
+    uint8_t x_accel_l;
+    uint8_t y_accel_h;
+    uint8_t y_accel_l;
+    uint8_t z_accel_h;
+    uint8_t z_accel_l;
+    uint8_t t_h;
+    uint8_t t_l;
+    uint8_t x_gyro_h;
+    uint8_t x_gyro_l;
+    uint8_t y_gyro_h;
+    uint8_t y_gyro_l;
+    uint8_t z_gyro_h;
+    uint8_t z_gyro_l;
+  } reg;
+  struct 
+  {
+    int16_t x_accel;
+    int16_t y_accel;
+    int16_t z_accel;
+    int16_t temperature;
+    int16_t x_gyro;
+    int16_t y_gyro;
+    int16_t z_gyro;
+  } value;
+};
+
+
 void setup() {
   Serial.begin(9600);
   mylcd.Init_LCD();
@@ -43,142 +103,209 @@ void setup() {
   mylcd.Set_Text_Size(4);
   mylcd.Set_Rotation(3);
 
-  Wire.beginTransmission(MPU);  // Start communication with MPU6050 // MPU=0x68
-  Wire.write(0x6B);             // Talk to the register 6B
-  Wire.write(0x00);             // Make reset - place a 0 into the 6B register
-  Wire.endTransmission(true);   //end the transmission
+  int error;
+  uint8_t c;
 
-  calculate_IMU_error();
-  delay(20);
+
+  Serial.begin(9600);
+  Serial.println(F("InvenSense MPU-6050"));
+  Serial.println(F("June 2012"));
+
+  // Initialize the 'Wire' class for the I2C-bus.
+  Wire.begin();
+
+
+  // default at power-up:
+  //    Gyro at 250 degrees second
+  //    Acceleration at 2g
+  //    Clock source at internal 8MHz
+  //    The device is in sleep mode.
+  //
+
+  error = MPU6050_read (MPU6050_WHO_AM_I, &c, 1);
+  Serial.print(F("WHO_AM_I : "));
+  Serial.print(c,HEX);
+  Serial.print(F(", error = "));
+  Serial.println(error,DEC);
+
+  // According to the datasheet, the 'sleep' bit
+  // should read a '1'.
+  // That bit has to be cleared, since the sensor
+  // is in sleep mode at power-up. 
+  error = MPU6050_read (MPU6050_PWR_MGMT_1, &c, 1);
+  Serial.print(F("PWR_MGMT_1 : "));
+  Serial.print(c,HEX);
+  Serial.print(F(", error = "));
+  Serial.println(error,DEC);
+
+
+  // Clear the 'sleep' bit to start the sensor.
+  MPU6050_write_reg (MPU6050_PWR_MGMT_1, 0);
 }
 
-void loop() {
+void loop() { //gathers data in 0.1 second unless you do something like try to display it to slow it down
+  byte error, address;
+  double dT;
+  accel_t_gyro_union accel_t_gyro;
   previousTime = currentTime;                         // Previous time is stored before the actual time read
   currentTime = millis();                             // Current time actual time read
   elapsedTime = (currentTime - previousTime) / 1000;  // Divide by 1000 to get seconds
 
+  // Read the raw values.
+  // Read 14 bytes at once, 
+  // containing acceleration, temperature and gyro.
+  // With the default settings of the MPU-6050,
+  // there is no filter enabled, and the values
+  // are not very stable.
+  error = MPU6050_read (MPU6050_ACCEL_XOUT_H, (uint8_t *) &accel_t_gyro, sizeof(accel_t_gyro));
+  Serial.print(F("Read accel, temp and gyro, error = "));
+  Serial.println(error,DEC);
 
-  if (elapsedTime = 0.02) {
-    Get_Data();
-  }
-  if (elapsedTime = 2) {
-    Display();
-  }
+  // Swap all high and low bytes.
+  // After this, the registers values are swapped, 
+  // so the structure name like x_accel_l does no 
+  // longer contain the lower byte.
+  uint8_t swap;
+  #define SWAP(x,y) swap = x; x = y; y = swap
 
+  SWAP (accel_t_gyro.reg.x_accel_h, accel_t_gyro.reg.x_accel_l);
+  SWAP (accel_t_gyro.reg.y_accel_h, accel_t_gyro.reg.y_accel_l);
+  SWAP (accel_t_gyro.reg.z_accel_h, accel_t_gyro.reg.z_accel_l);
+  SWAP (accel_t_gyro.reg.t_h, accel_t_gyro.reg.t_l);
+  SWAP (accel_t_gyro.reg.x_gyro_h, accel_t_gyro.reg.x_gyro_l);
+  SWAP (accel_t_gyro.reg.y_gyro_h, accel_t_gyro.reg.y_gyro_l);
+  SWAP (accel_t_gyro.reg.z_gyro_h, accel_t_gyro.reg.z_gyro_l);
 
-}
-void Get_Data() {
-    // === Read acceleromter data === //
-  Wire.beginTransmission(MPU);
-  Wire.write(0x3B);  // Start with register 0x3B (ACCEL_XOUT_H)
-  Wire.endTransmission(false);
-  Wire.requestFrom(MPU, 6, true);  // Read 6 registers total, each axis value is stored in 2 registers
+  // Print the raw acceleration values
 
-  //For a range of +-2g, we need to divide the raw values by 16384, according to the datasheet
-  AccX = (Wire.read() << 8 | Wire.read()) / 16384.0;  // X-axis value
-  AccY = (Wire.read() << 8 | Wire.read()) / 16384.0;  // Y-axis value
-  AccZ = (Wire.read() << 8 | Wire.read()) / 16384.0;  // Z-axis value
+  Serial.print(F("accel x,y,z: "));
+  Serial.print(accel_t_gyro.value.x_accel / 16384.0, DEC);
+  Serial.print(F(", "));
+  Serial.print(accel_t_gyro.value.y_accel / 16384.0, DEC);
+  Serial.print(F(", "));
+  Serial.print(accel_t_gyro.value.z_accel / 16384.0, DEC);
+  Serial.println(F(""));
 
+  // The temperature sensor is -40 to +85 degrees Celsius.
+  // It is a signed integer.
+  // According to the datasheet: 
+  //   340 per degrees Celsius, -512 at 35 degrees.
+  // At 0 degrees: -512 - (340 * 35) = -12412
 
-  // Calculating Roll and Pitch from the accelerometer data
-  accAngleX = (atan(AccY / sqrt(pow(AccX, 2) + pow(AccZ, 2))) * 180 / PI) - 0.58;       // AccErrorX ~(0.58) See the calculate_IMU_error()custom function for more details
-  accAngleY = (atan(-1 * AccX / sqrt(pow(AccY, 2) + pow(AccZ, 2))) * 180 / PI) + 1.58;  // AccErrorY ~(-1.58)
-
-
-  // === Read gyroscope data === //
- 
-  Wire.beginTransmission(MPU);
-  Wire.write(0x43);  // Gyro data first register address 0x43
-  Wire.endTransmission(false);
-  Wire.requestFrom(MPU, 6, true);                    // Read 4 registers total, each axis value is stored in 2 registers
-  GyroX = (Wire.read() << 8 | Wire.read()) / 131.0;  // For a 250deg/s range we have to divide first the raw value by 131.0, according to the datasheet
-  GyroY = (Wire.read() << 8 | Wire.read()) / 131.0;
-  GyroZ = (Wire.read() << 8 | Wire.read()) / 131.0;
-
-
-  // Correct the outputs with the calculated error values
-  GyroX = GyroX + 0.56;  // GyroErrorX ~(-0.56)
-  GyroY = GyroY - 2;     // GyroErrorY ~(2)
-  GyroZ = GyroZ + 0.79;  // GyroErrorZ ~ (-0.8)
-  // Currently the raw values are in degrees per seconds, deg/s, so we need to multiply by sendonds (s) to get the angle in degrees
-  gyroAngleX = gyroAngleX + GyroX * elapsedTime;  // deg/s * s = deg
-  gyroAngleY = gyroAngleY + GyroY * elapsedTime;
-  yaw = yaw + GyroZ * elapsedTime;  //might change this to be Gyro Z
-
-
-  // Complementary filter - combine acceleromter and gyro angle values
-  roll = 0.96 * gyroAngleX + 0.04 * accAngleX;
-  pitch = 0.96 * gyroAngleY + 0.04 * accAngleY;
-
-  // Print the values on the serial monitor
-  Serial.print(roll);
-  Serial.print("/");
-  Serial.print(pitch);
-  Serial.print("/");
-  Serial.println(yaw);
+  Serial.print(F("temperature: "));
+  dT = ( (double) accel_t_gyro.value.temperature + 12412.0) / 340.0;
+  Serial.print(dT, 3);
+  Serial.print(F(" degrees Celsius"));
+  Serial.println(F(""));
 
 
-}
-void calculate_IMU_error() {
-  // We can call this funtion in the setup section to calculate the accelerometer and gyro data error. From here we will get the error values used in the above equations printed on the Serial Monitor.
-  // Note that we should place the IMU flat in order to get the proper values, so that we then can the correct values
-  // Read accelerometer values 200 times
-  while (c < 200) {
-    Wire.beginTransmission(MPU);
-    Wire.write(0x3B);
-    Wire.endTransmission(false);
-    Wire.requestFrom(MPU, 6, true);
-    AccX = (Wire.read() << 8 | Wire.read()) / 16384.0;
-    AccY = (Wire.read() << 8 | Wire.read()) / 16384.0;
-    AccZ = (Wire.read() << 8 | Wire.read()) / 16384.0;
-    // Sum all readings
-    AccErrorX = AccErrorX + ((atan((AccY) / sqrt(pow((AccX), 2) + pow((AccZ), 2))) * 180 / PI));
-    AccErrorY = AccErrorY + ((atan(-1 * (AccX) / sqrt(pow((AccY), 2) + pow((AccZ), 2))) * 180 / PI));
-    c++;
-  }
-  //Divide the sum by 200 to get the error value
-  AccErrorX = AccErrorX / 200;
-  AccErrorY = AccErrorY / 200;
-  c = 0;
-  // Read gyro values 200 times
-  while (c < 200) {
-    Wire.beginTransmission(MPU);
-    Wire.write(0x43);
-    Wire.endTransmission(false);
-    Wire.requestFrom(MPU, 6, true);
-    GyroX = Wire.read() << 8 | Wire.read();
-    GyroY = Wire.read() << 8 | Wire.read();
-    GyroZ = Wire.read() << 8 | Wire.read();
-    // Sum all readings
-    GyroErrorX = GyroErrorX + (GyroX / 131.0);
-    GyroErrorY = GyroErrorY + (GyroY / 131.0);
-    GyroErrorZ = GyroErrorZ + (GyroZ / 131.0);
-    c++;
-  }
-  //Divide the sum by 200 to get the error value
-  GyroErrorX = GyroErrorX / 200;
-  GyroErrorY = GyroErrorY / 200;
-  GyroErrorZ = GyroErrorZ / 200;
-  // Print the error values on the Serial Monitor
-  Serial.print("AccErrorX: ");
-  Serial.println(AccX);
-  Serial.print("AccErrorY: ");
-  Serial.println(AccY);
-  Serial.print("GyroErrorX: ");
-  Serial.println(GyroErrorX);
-  Serial.print("GyroErrorY: ");
-  Serial.println(GyroErrorY);
-  Serial.print("GyroErrorZ: ");
-  Serial.println(GyroErrorZ);
-}
+  // Print the raw gyro values.
 
-void Display() {
-  int numxoffset = 0;
-  int strxoffset = 142;
-  int yoffset = 10;
+  Serial.print(F("gyro x,y,z : "));
+  Serial.print(accel_t_gyro.value.x_gyro/ 131.0, DEC);
+  Serial.print(F(", "));
+  Serial.print(accel_t_gyro.value.y_gyro/ 131.0, DEC);
+  Serial.print(F(", "));
+  Serial.print(accel_t_gyro.value.z_gyro/ 131.0, DEC);
+  Serial.print(F(", "));
+  Serial.println(F(""));
+  Serial.print(F("time elapsed: "));
+  Serial.println(elapsedTime);
 
   sensors.requestTemperatures();
   float celsius = sensors.getTempCByIndex(0);
+  Display(celsius,accel_t_gyro.value.x_accel, accel_t_gyro.value.y_accel, accel_t_gyro.value.z_accel, accel_t_gyro.value.x_gyro, accel_t_gyro.value.y_gyro, accel_t_gyro.value.z_gyro, accel_t_gyro.value.z_gyro);
+  Serial.print(F("time elapsed: "));
+  Serial.println(elapsedTime);
+}
+  
+int MPU6050_read(int start, uint8_t *buffer, int size)
+{
+  int i, n, error;
+
+  Wire.beginTransmission(MPU6050_I2C_ADDRESS);
+  n = Wire.write(start);
+  if (n != 1)
+    return (-10);
+
+  n = Wire.endTransmission(false);    // hold the I2C-bus
+  if (n != 0)
+    return (n);
+
+  // Third parameter is true: relase I2C-bus after data is read.
+  Wire.requestFrom(MPU6050_I2C_ADDRESS, size, true);
+  i = 0;
+  while(Wire.available() && i<size)
+  {
+    buffer[i++]=Wire.read();
+  }
+  if ( i != size)
+    return (-11);
+
+  return (0);  // return : no error
+}
+
+
+// --------------------------------------------------------
+// MPU6050_write
+//
+// This is a common function to write multiple bytes to an I2C device.
+//
+// If only a single register is written,
+// use the function MPU_6050_write_reg().
+//
+// Parameters:
+//   start : Start address, use a define for the register
+//   pData : A pointer to the data to write.
+//   size  : The number of bytes to write.
+//
+// If only a single register is written, a pointer
+// to the data has to be used, and the size is
+// a single byte:
+//   int data = 0;        // the data to write
+//   MPU6050_write (MPU6050_PWR_MGMT_1, &c, 1);
+//
+int MPU6050_write(int start, const uint8_t *pData, int size)
+{
+  int n, error;
+
+  Wire.beginTransmission(MPU6050_I2C_ADDRESS);
+  n = Wire.write(start);        // write the start address
+  if (n != 1)
+    return (-20);
+
+  n = Wire.write(pData, size);  // write data bytes
+  if (n != size)
+    return (-21);
+
+  error = Wire.endTransmission(true); // release the I2C-bus
+  if (error != 0)
+    return (error);
+
+  return (0);         // return : no error
+}
+
+// --------------------------------------------------------
+// MPU6050_write_reg
+//
+// An extra function to write a single register.
+// It is just a wrapper around the MPU_6050_write()
+// function, and it is only a convenient function
+// to make it easier to write a single register.
+//
+int MPU6050_write_reg(int reg, uint8_t data)
+{
+  int error;
+
+  error = MPU6050_write(reg, &data, 1);
+
+  return (error);
+}
+
+float Display(float celsius,float AccelX,float AccelY,float AccelZ,float GyroX,float GyroY,float GyroZ,float Speed) {
+  int numxoffset = 0;
+  int strxoffset = 142;
+  int yoffset = 10;
 
   mylcd.Fill_Screen(0xFFFF);
 
@@ -189,32 +316,32 @@ void Display() {
   mylcd.Draw_Circle(strxoffset + 5, 5 + yoffset, 4);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(AccX, 2, numxoffset, 35 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(AccelX, 2, numxoffset, 35 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("AccX m/s^2", strxoffset, 40 + yoffset);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(AccY, 2, numxoffset, 65 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(AccelY, 2, numxoffset, 65 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("AccY m/s^2", strxoffset, 70 + yoffset);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(AccZ, 2, numxoffset, 95 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(AccelZ, 2, numxoffset, 95 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("AccZ m/s^2", strxoffset, 100 + yoffset);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(gyroAngleX, 2, numxoffset, 125 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(GyroX, 2, numxoffset, 125 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("Deg X", strxoffset, 130 + yoffset);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(gyroAngleY, 2, numxoffset, 155 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(GyroY, 2, numxoffset, 155 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("Deg Y", strxoffset, 160 + yoffset);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(yaw, 2, numxoffset, 185 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(GyroZ, 2, numxoffset, 185 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("Deg Z", strxoffset, 190 + yoffset);
 
@@ -222,6 +349,6 @@ void Display() {
   mylcd.Fill_Screen(0xFFFF);
 
   mylcd.Set_Text_Size(8);
-  mylcd.Print_Number_Float(yaw, 2, 0, 15, '.', 6, ' ');
+  mylcd.Print_Number_Float(GyroZ, 2, 0, 15, '.', 6, ' ');
   mylcd.Print_String("m/s", 120, 100);
 }
