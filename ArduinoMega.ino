@@ -316,32 +316,32 @@ float Display(float celsius,float AccelX,float AccelY,float AccelZ,float GyroX,f
   mylcd.Draw_Circle(strxoffset + 5, 5 + yoffset, 4);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(AccelX, 2, numxoffset, 35 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(AccelX/ 16384.0, 2, numxoffset, 35 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("AccX m/s^2", strxoffset, 40 + yoffset);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(AccelY, 2, numxoffset, 65 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(AccelY/ 16384.0, 2, numxoffset, 65 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("AccY m/s^2", strxoffset, 70 + yoffset);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(AccelZ, 2, numxoffset, 95 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(AccelZ/ 16384.0, 2, numxoffset, 95 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("AccZ m/s^2", strxoffset, 100 + yoffset);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(GyroX, 2, numxoffset, 125 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(GyroX/ 131.0, 2, numxoffset, 125 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("Deg X", strxoffset, 130 + yoffset);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(GyroY, 2, numxoffset, 155 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(GyroY/ 131.0, 2, numxoffset, 155 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("Deg Y", strxoffset, 160 + yoffset);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(GyroZ, 2, numxoffset, 185 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(GyroZ/ 131.0, 2, numxoffset, 185 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String("Deg Z", strxoffset, 190 + yoffset);
 
@@ -349,6 +349,6 @@ float Display(float celsius,float AccelX,float AccelY,float AccelZ,float GyroX,f
   mylcd.Fill_Screen(0xFFFF);
 
   mylcd.Set_Text_Size(8);
-  mylcd.Print_Number_Float(GyroZ, 2, 0, 15, '.', 6, ' ');
+  mylcd.Print_Number_Float(GyroZ/ 131.0, 2, 0, 15, '.', 6, ' ');
   mylcd.Print_String("m/s", 120, 100);
 }
