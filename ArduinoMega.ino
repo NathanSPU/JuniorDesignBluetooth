@@ -23,9 +23,17 @@ using namespace std;
 //keep track of time so we can derive the radial position and velociy from accelerometer
 float elapsedTime, currentTime, previousTime;
 
-//global varialables for the offset variables 
+//global variables for the offset variables 
 float axoffset, ayoffset, azoffset;
 float gxoffset, gyoffset, gzoffset;
+
+//global variables for radial position calculation
+float RadposX = 0;
+float RadposY = 0;
+float RadposZ = 0;
+
+//global variable for vehicle speed
+float Speedaccel = 0;
 
 //set-up for accelerometer
 Adafruit_MPU6050 mpu;
@@ -176,7 +184,12 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   float AccelY = a.acceleration.y-ayoffset;
   float AccelZ = a.acceleration.z-azoffset;
 
-  //calulate vehicle speed and radial position
+  //calulate vehicle speed and radial position,
+
+  float RadposX = (RadposX+ (gyroX * elapsedTime))*(180/M_PI); //convertd to degrees
+  float RadposY = (RadposY+ (gyroY * elapsedTime))*(180/M_PI);
+  float RadposZ = (RadposZ+ (gyroZ * elapsedTime))*(180/M_PI);
+  float Speedaccel = AccelX * elapsedTime;
 
   //Save to SD card
 
@@ -192,12 +205,12 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   Serial.println(" m/s^2");
 
   Serial.print("Rotation X: ");
-  Serial.print(gyroX);
+  Serial.print(RadposX);
   Serial.print(", Y: ");
-  Serial.print(gyroY);
+  Serial.print(RadposY);
   Serial.print(", Z: ");
-  Serial.print(gyroZ);
-  Serial.println(" rad/s");
+  Serial.print(RadposZ);
+  Serial.println(" deg");
 
   Serial.print("Temp: ");
   Serial.print(tempAccel);
@@ -207,7 +220,7 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   delay(500);
 }
 
-float Display(float celsius,float AccelX,float AccelY,float AccelZ,float GyroX,float GyroY,float GyroZ,float Speed) {
+float Display(float tempSun, float tempAccel,float AccelX,float AccelY,float AccelZ,float GyroX,float GyroY,float GyroZ,float Speedaccel,float Speedblue) {
   int numxoffset = 0;
   int strxoffset = 142;
   int yoffset = 10;
@@ -215,7 +228,7 @@ float Display(float celsius,float AccelX,float AccelY,float AccelZ,float GyroX,f
   mylcd.Fill_Screen(0xFFFF);
 
   mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(celsius, 2, numxoffset, 5 + yoffset, '.', 6, ' ');
+  mylcd.Print_Number_Float(tempSun, 2, numxoffset, 5 + yoffset, '.', 6, ' ');
   mylcd.Set_Text_Size(3);
   mylcd.Print_String(" C", strxoffset, 5 + yoffset);
   mylcd.Draw_Circle(strxoffset + 5, 5 + yoffset, 4);
