@@ -152,6 +152,16 @@ void setup() {
   gxoffset = gxoffset/200;
   gyoffset = gyoffset/200;
   gzoffset = gzoffset/200;
+
+  mylcd.Set_Text_Size(3);
+  mylcd.Print_String(" m/s", 142, 15);
+  mylcd.Print_String("AccX m/s^2", 142, 50);
+  mylcd.Print_String("AccY m/s^2", 142, 80);
+  mylcd.Print_String("AccZ m/s^2", 142, 110);
+  mylcd.Print_String("Deg X", 152, 140);
+  mylcd.Print_String("Deg Y", 152, 170);
+  mylcd.Print_String("Deg Z", 152, 200);
+  mylcd.Set_Text_Size(4);
 }
 
 void loop() { //gathers data in 0.1 second unless you do something like try to display it to slow it down
@@ -198,77 +208,39 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   Display(tempSun,tempAccel,AccelX,AccelY,AccelZ,RadposX,RadposY,RadposZ,Speedaccel,0);
 
   /* Print out the values */
-  Serial.print("Acceleration X: ");
-  Serial.print(AccelX);
-  Serial.print(", Y: ");
-  Serial.print(AccelY);
-  Serial.print(", Z: ");
-  Serial.print(AccelZ);
-  Serial.println(" m/s^2");
+  // Serial.print("Acceleration X: ");
+  // Serial.print(AccelX);
+  // Serial.print(", Y: ");
+  // Serial.print(AccelY);
+  // Serial.print(", Z: ");
+  // Serial.print(AccelZ);
+  // Serial.println(" m/s^2");
 
-  Serial.print("Rotation X: ");
-  Serial.print(RadposX);
-  Serial.print(", Y: ");
-  Serial.print(RadposY);
-  Serial.print(", Z: ");
-  Serial.print(RadposZ);
-  Serial.println(" deg");
+  // Serial.print("Rotation X: ");
+  // Serial.print(RadposX);
+  // Serial.print(", Y: ");
+  // Serial.print(RadposY);
+  // Serial.print(", Z: ");
+  // Serial.print(RadposZ);
+  // Serial.println(" deg");
 
-  Serial.print("Temp: ");
-  Serial.print(tempAccel);
-  Serial.println(" Degree C");
+  // Serial.print("Temp: ");
+  // Serial.print(tempAccel);
+  // Serial.println(" Degree C");
 
-  Serial.println("");
-  delay(500);
+  // Serial.println("");
+  // delay(500);
 }
 
 float Display(float tempSun, float tempAccel,float AccelX,float AccelY,float AccelZ,float GyroX,float GyroY,float GyroZ,float Speedaccel,float Speedblue) {
-  int numxoffset = 0;
-  int strxoffset = 142;
   int yoffset = 10;
 
-  mylcd.Fill_Screen(0xFFFF);
-
-  mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(tempSun, 2, numxoffset, 5 + yoffset, '.', 6, ' ');
-  mylcd.Set_Text_Size(3);
-  mylcd.Print_String(" C", strxoffset, 5 + yoffset);
-  mylcd.Draw_Circle(strxoffset + 5, 5 + yoffset, 4);
-
-  mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(AccelX, 2, numxoffset, 35 + yoffset, '.', 6, ' ');
-  mylcd.Set_Text_Size(3);
-  mylcd.Print_String("AccX m/s^2", strxoffset, 40 + yoffset);
-
-  mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(AccelY, 2, numxoffset, 65 + yoffset, '.', 6, ' ');
-  mylcd.Set_Text_Size(3);
-  mylcd.Print_String("AccY m/s^2", strxoffset, 70 + yoffset);
-
-  mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(AccelZ, 2, numxoffset, 95 + yoffset, '.', 6, ' ');
-  mylcd.Set_Text_Size(3);
-  mylcd.Print_String("AccZ m/s^2", strxoffset, 100 + yoffset);
-
-  mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(GyroX, 2, numxoffset, 125 + yoffset, '.', 6, ' ');
-  mylcd.Set_Text_Size(3);
-  mylcd.Print_String("Deg X", strxoffset, 130 + yoffset);
-
-  mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(GyroY, 2, numxoffset, 155 + yoffset, '.', 6, ' ');
-  mylcd.Set_Text_Size(3);
-  mylcd.Print_String("Deg Y", strxoffset, 160 + yoffset);
-
-  mylcd.Set_Text_Size(4);
-  mylcd.Print_Number_Float(GyroZ, 2, numxoffset, 185 + yoffset, '.', 6, ' ');
-  mylcd.Set_Text_Size(3);
-  mylcd.Print_String("Deg Z", strxoffset, 190 + yoffset);
-
-  delay(2000);
-  mylcd.Fill_Screen(0xFFFF);
-
-  mylcd.Set_Text_Size(8);
-  mylcd.Print_Number_Float(Speedaccel, 2, 0, 15, '.', 6, ' ');
-  mylcd.Print_String("m/s", 120, 100);
+  mylcd.Print_Number_Float(Speedaccel, 1, 1, 5 + yoffset, '.', 4, ' ');
+  mylcd.Print_Number_Float(AccelX, 1, 1, 35 + yoffset, '.', 4, ' ');
+  mylcd.Print_Number_Float(AccelY, 1, 1, 65 + yoffset, '.', 4, ' ');
+  mylcd.Print_Number_Float(AccelZ, 1, 1, 95 + yoffset, '.', 4, ' ');
+  mylcd.Print_Number_Float(GyroX, 1, 1, 125 + yoffset, '.', 4, ' ');
+  mylcd.Print_Number_Float(GyroY, 1, 1, 155 + yoffset, '.', 4, ' ');
+  mylcd.Print_Number_Float(GyroZ, 1, 1, 185 + yoffset, '.', 4, ' ');
+  mylcd.Fill_Rect(0,0,140,500,0xFFFF);
 }
