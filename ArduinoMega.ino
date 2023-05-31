@@ -162,6 +162,9 @@ void setup() {
   mylcd.Print_String("Deg X", 152, 140);
   mylcd.Print_String("Deg Y", 152, 170);
   mylcd.Print_String("Deg Z", 152, 200);
+  mylcd.Draw_Circle(297, 215, 2);
+  mylcd.Set_Text_Size(2);
+  mylcd.Print_String("C",300, 220);
   mylcd.Set_Text_Size(4);
 }
 
@@ -183,6 +186,8 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
 
   //Accelerometer temperature sensor
   float tempAccel = temp.temperature;
+
+  float tempAvg = (tempSun + tempAccel)/2;
 
   //Accelerometer gyroscope data
   float gyroX = g.gyro.x-gxoffset;
@@ -239,7 +244,7 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
     
   //display
 
-  Display(tempSun,tempAccel,AccelX,AccelY,AccelZ,RadposX,RadposY,RadposZ,Speedaccel,0);
+  Display(tempAvg,AccelX,AccelY,AccelZ,RadposX,RadposY,RadposZ,Speedaccel);
 
   /* Print out the values */
   // Serial.print("Acceleration X: ");
@@ -266,7 +271,7 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   // delay(500);
 }
 
-float Display(float tempSun, float tempAccel,float AccelX,float AccelY,float AccelZ,float GyroX,float GyroY,float GyroZ,float Speedaccel,float Speedblue) {
+float Display(float tempAvg,float AccelX,float AccelY,float AccelZ,float GyroX,float GyroY,float GyroZ,float Speedaccel) {
   int yoffset = 10;
 
   mylcd.Print_Number_Float(Speedaccel, 1, 1, 5 + yoffset, '.', 4, ' ');
@@ -276,5 +281,8 @@ float Display(float tempSun, float tempAccel,float AccelX,float AccelY,float Acc
   mylcd.Print_Number_Float(GyroX, 1, 1, 125 + yoffset, '.', 4, ' ');
   mylcd.Print_Number_Float(GyroY, 1, 1, 155 + yoffset, '.', 4, ' ');
   mylcd.Print_Number_Float(GyroZ, 1, 1, 185 + yoffset, '.', 4, ' ');
+  mylcd.Set_Text_Size(2);
+  mylcd.Print_Number_Float(tempAvg, 1, 250, 220, '.', 4, ' ');
+  mylcd.Set_Text_Size(4);
   mylcd.Fill_Rect(0,0,140,500,0xFFFF);
 }
