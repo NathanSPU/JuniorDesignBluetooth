@@ -48,6 +48,7 @@ LCDWIKI_SPI mylcd(MODEL, CS, CD, MISO, MOSI, RST, SCK, LED);  //model,cs,dc,miso
 void setup() {
   //start all the communication among the various sensor and microcontrollers
   Serial.begin(9600);
+  Serial2.begin(9600);
   mylcd.Init_LCD();
   Wire.begin();
   sensors.begin();
@@ -202,7 +203,40 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   float Speedaccel = AccelX * elapsedTime;
 
   //Save to SD card
+  char buffer[7];
+  char buffer1[7];
+  char buffer2[7];
+  char buffer3[7];
+  char buffer4[7];
+  char buffer5[7];
+  char buffer6[7];
+  char buffer7[7];
 
+  Serial2.write(dtostrf(tempSun, 4, 2, buffer));
+  Serial2.write(", ");
+  delay(500);
+  Serial2.write(dtostrf(AccelX, 4, 2, buffer1));
+  Serial2.write(", ");
+  delay(500);
+  Serial2.write(dtostrf(AccelY, 4, 2, buffer2));
+  Serial2.write(", ");
+  delay(500);
+  Serial2.write(dtostrf(AccelZ, 4, 2, buffer3));
+  Serial2.write(", ");
+  delay(500);
+  Serial2.write(dtostrf(RadposX, 4, 2, buffer4));
+  Serial2.write(", ");
+  delay(500);
+  Serial2.write(dtostrf(RadposY, 4, 2, buffer5));
+  Serial2.write(", ");
+  delay(500);
+  Serial2.write(dtostrf(RadposZ, 4, 2, buffer6));
+  Serial2.write(", ");
+  delay(500);
+  Serial2.write(dtostrf(Speedaccel, 4, 2, buffer7));
+  Serial2.println();
+  delay(500);
+    
   //display
 
   Display(tempSun,tempAccel,AccelX,AccelY,AccelZ,RadposX,RadposY,RadposZ,Speedaccel,0);
