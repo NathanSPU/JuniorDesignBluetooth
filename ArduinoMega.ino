@@ -282,8 +282,12 @@ float Display(float tempAvg,float AccelX,float AccelY,float AccelZ,float GyroX,f
   mylcd.Print_Number_Float(GyroY, 1, 1, 155 + yoffset, '.', 4, ' ');
   mylcd.Print_Number_Float(GyroZ, 1, 1, 185 + yoffset, '.', 4, ' ');
   mylcd.Set_Text_Size(2);
-  if (tempAvg > 85) {
+  if (tempAvg > 80) {
     mylcd.Set_Text_colour(0xF800);
+    mylcd.Fill_Screen(0xFFFF);
+    mylcd.Print_String(" Warning Overheat", 142, 15);
+    mylcd.Print_Number_Float(tempAvg, 1, 142, 50, '.', 4, ' ');
+    mylcd.Fill_Screen(0xFFFF);
   }
   else {
     mylcd.Set_Text_colour(0xF800);
