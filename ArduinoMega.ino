@@ -282,6 +282,12 @@ float Display(float tempAvg,float AccelX,float AccelY,float AccelZ,float GyroX,f
   mylcd.Print_Number_Float(GyroY, 1, 1, 155 + yoffset, '.', 4, ' ');
   mylcd.Print_Number_Float(GyroZ, 1, 1, 185 + yoffset, '.', 4, ' ');
   mylcd.Set_Text_Size(2);
+  if (tempAvg > 85) {
+    mylcd.Set_Text_colour(0xF800);
+  }
+  else {
+    mylcd.Set_Text_colour(0xF800);
+  }
   mylcd.Print_Number_Float(tempAvg, 1, 250, 220, '.', 4, ' ');
   mylcd.Set_Text_Size(4);
 }
