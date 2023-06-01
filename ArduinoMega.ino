@@ -284,5 +284,4 @@ float Display(float tempAvg,float AccelX,float AccelY,float AccelZ,float GyroX,f
   mylcd.Set_Text_Size(2);
   mylcd.Print_Number_Float(tempAvg, 1, 250, 220, '.', 4, ' ');
   mylcd.Set_Text_Size(4);
-  mylcd.Fill_Rect(0,0,140,500,0xFFFF);
 }
