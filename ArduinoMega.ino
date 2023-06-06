@@ -66,12 +66,14 @@ void setup() {
   Serial.println("MPU6050 Found!");
 
   //clear the screen, set text-size, color, and direction
+  Serial.println("Setting up display");
   mylcd.Fill_Screen(0xFFFF);
   mylcd.Set_Text_Back_colour(0xFFFF);
   mylcd.Set_Draw_color(0x0000);
   mylcd.Set_Text_colour(0x0000);
   mylcd.Set_Text_Size(4);
   mylcd.Set_Rotation(3);
+  Serial.println("Display setup complete.");
 
   mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
   Serial.print("Accelerometer range set to: ");
@@ -153,6 +155,7 @@ void setup() {
   gxoffset = gxoffset/200;
   gyoffset = gyoffset/200;
   gzoffset = gzoffset/200;
+  Serial.println("Calibration finished");
 
   mylcd.Set_Text_Size(3);
   mylcd.Print_String(" m/s", 142, 15);
@@ -166,14 +169,15 @@ void setup() {
   mylcd.Set_Text_Size(2);
   mylcd.Print_String("C",300, 220);
   mylcd.Set_Text_Size(4);
+  Serial.println("Starting loop!");
 }
 
 void loop() { //gathers data in 0.1 second unless you do something like try to display it to slow it down
-
+  
   previousTime = currentTime;                         // Previous time is stored before the actual time read
   currentTime = millis();                             // Current time actual time read
   elapsedTime = (currentTime - previousTime) / 1000;  // Divide by 1000 to get seconds
-
+  float currentTimeWrite = currentTime / 1000;
   /* Get new sensor events with the readings */
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
@@ -217,7 +221,7 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   char buffer6[7];
   char buffer7[7];
 
-  Serial2.write(dtostrf(tempSun, 4, 2, buffer));
+  Serial2.write(dtostrf(Speedaccel, 4, 2, buffer));
   Serial2.write(", ");
   delay(500);
   Serial2.write(dtostrf(AccelX, 4, 2, buffer1));
@@ -238,7 +242,10 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   Serial2.write(dtostrf(RadposZ, 4, 2, buffer6));
   Serial2.write(", ");
   delay(500);
-  Serial2.write(dtostrf(Speedaccel, 4, 2, buffer7));
+  Serial2.write(dtostrf(tempSun, 4, 2, buffer7));
+  Serial2.println(", ");
+  delay(500);
+  Serial2.write(dtostrf(currentTimeWrite, 4, 2, buffer7));
   Serial2.println();
   delay(500);
     
