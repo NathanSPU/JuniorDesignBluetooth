@@ -214,7 +214,7 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   float RadposX = (RadposX+ (gyroX * elapsedTime))*(180/M_PI); //convertd to degrees
   float RadposY = (RadposY+ (gyroY * elapsedTime))*(180/M_PI);
   float RadposZ = (RadposZ+ (gyroZ * elapsedTime))*(180/M_PI);
-  float Speedaccel = AccelX * elapsedTime;
+  float Speedaccel = AccelY * elapsedTime;
 
   //Save to SD card
   char buffer[7];
