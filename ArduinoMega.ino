@@ -44,8 +44,9 @@ DallasTemperature sensors(&oneWire);
 
 //set-up for the display
 LCDWIKI_SPI mylcd(MODEL, CS, CD, MISO, MOSI, RST, SCK, LED);  //model,cs,dc,miso,mosi,reset,sck,led
-
+bool displayMode = false;
 void setup() {
+
   //start all the communication among the various sensor and microcontrollers
   Serial.begin(9600);
   Serial2.begin(9600);
@@ -64,16 +65,20 @@ void setup() {
     }
   }
   Serial.println("MPU6050 Found!");
-
+  if (displayMode) {
   //clear the screen, set text-size, color, and direction
-  Serial.println("Setting up display");
-  mylcd.Fill_Screen(0xFFFF);
-  mylcd.Set_Text_Back_colour(0xFFFF);
-  mylcd.Set_Draw_color(0x0000);
-  mylcd.Set_Text_colour(0x0000);
-  mylcd.Set_Text_Size(4);
-  mylcd.Set_Rotation(3);
-  Serial.println("Display setup complete.");
+    Serial.println("Setting up display");
+    mylcd.Fill_Screen(0xFFFF);
+    mylcd.Set_Text_Back_colour(0xFFFF);
+    mylcd.Set_Draw_color(0x0000);
+    mylcd.Set_Text_colour(0x0000);
+    mylcd.Set_Text_Size(4);
+    mylcd.Set_Rotation(3);
+    Serial.println("Display setup complete.");
+  }
+  else {
+    mylcd.Fill_Screen(0x0000);
+  }
 
   mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
   Serial.print("Accelerometer range set to: ");
@@ -156,24 +161,24 @@ void setup() {
   gyoffset = gyoffset/200;
   gzoffset = gzoffset/200;
   Serial.println("Calibration finished");
-
-  mylcd.Set_Text_Size(3);
-  mylcd.Print_String(" m/s", 142, 15);
-  mylcd.Print_String("AccX m/s^2", 142, 50);
-  mylcd.Print_String("AccY m/s^2", 142, 80);
-  mylcd.Print_String("AccZ m/s^2", 142, 110);
-  mylcd.Print_String("Deg X", 152, 140);
-  mylcd.Print_String("Deg Y", 152, 170);
-  mylcd.Print_String("Deg Z", 152, 200);
-  mylcd.Draw_Circle(297, 215, 2);
-  mylcd.Set_Text_Size(2);
-  mylcd.Print_String("C",300, 220);
-  mylcd.Set_Text_Size(4);
-  Serial.println("Starting loop!");
+  if (displayMode) {
+    mylcd.Set_Text_Size(3);
+    mylcd.Print_String(" m/s", 142, 15);
+    mylcd.Print_String("AccX m/s^2", 142, 50);
+    mylcd.Print_String("AccY m/s^2", 142, 80);
+    mylcd.Print_String("AccZ m/s^2", 142, 110);
+    mylcd.Print_String("Deg X", 152, 140);
+    mylcd.Print_String("Deg Y", 152, 170);
+    mylcd.Print_String("Deg Z", 152, 200);
+    mylcd.Draw_Circle(297, 215, 2);
+    mylcd.Set_Text_Size(2);
+    mylcd.Print_String("C",300, 220);
+    mylcd.Set_Text_Size(4);
+    Serial.println("Starting loop!");
+  }
 }
 
 void loop() { //gathers data in 0.1 second unless you do something like try to display it to slow it down
-  
   previousTime = currentTime;                         // Previous time is stored before the actual time read
   currentTime = millis();                             // Current time actual time read
   elapsedTime = (currentTime - previousTime) / 1000;  // Divide by 1000 to get seconds
@@ -191,7 +196,7 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   //Accelerometer temperature sensor
   float tempAccel = temp.temperature;
 
-  float tempAvg = (tempSun + tempAccel)/2;
+  float tempAvg = ((tempSun + tempAccel)/2) - 1;
 
   //Accelerometer gyroscope data
   float gyroX = g.gyro.x-gxoffset;
@@ -223,35 +228,36 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
 
   Serial2.write(dtostrf(Speedaccel, 4, 2, buffer));
   Serial2.write(", ");
-  delay(500);
+  
   Serial2.write(dtostrf(AccelX, 4, 2, buffer1));
   Serial2.write(", ");
-  delay(500);
+  
   Serial2.write(dtostrf(AccelY, 4, 2, buffer2));
   Serial2.write(", ");
-  delay(500);
+  
   Serial2.write(dtostrf(AccelZ, 4, 2, buffer3));
   Serial2.write(", ");
-  delay(500);
+  
   Serial2.write(dtostrf(RadposX, 4, 2, buffer4));
   Serial2.write(", ");
-  delay(500);
+  
   Serial2.write(dtostrf(RadposY, 4, 2, buffer5));
   Serial2.write(", ");
-  delay(500);
+  
   Serial2.write(dtostrf(RadposZ, 4, 2, buffer6));
   Serial2.write(", ");
-  delay(500);
-  Serial2.write(dtostrf(tempSun, 4, 2, buffer7));
+  
+  Serial2.write(dtostrf(tempAvg, 4, 2, buffer7));
   Serial2.println(", ");
-  delay(500);
+  
   Serial2.write(dtostrf(currentTimeWrite, 4, 2, buffer7));
   Serial2.println();
-  delay(500);
-    
-  //display
+  if (displayMode) {
+  delay(4000);
 
+  //display
   Display(tempAvg,AccelX,AccelY,AccelZ,RadposX,RadposY,RadposZ,Speedaccel);
+  }
 
   /* Print out the values */
   // Serial.print("Acceleration X: ");
@@ -280,14 +286,54 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
 
 float Display(float tempAvg,float AccelX,float AccelY,float AccelZ,float GyroX,float GyroY,float GyroZ,float Speedaccel) {
   int yoffset = 10;
+  if (tempAvg > 99.99) {
+    tempAvg = 99.99;
+  } else if (tempAvg < -99.99) {
+    tempAvg = -99.99;
+  }
+  if (AccelX > 99.99) {
+    AccelX = 99.99;
+  } else if (AccelX < -99.99) {
+    AccelX = -99.99;
+  }
+  if (AccelY > 99.99) {
+    AccelY = 99.99;
+  } else if (AccelY < -99.99) {
+    AccelY = -99.99;
+  }
+  if (AccelZ > 99.99) {
+    AccelZ = 99.99;
+  } else if (AccelZ < -99.99) {
+    AccelZ = -99.99;
+  }
+  if (GyroX > 99.99) {
+    GyroX = 99.99;
+  } else if (GyroX < -99.99) {
+    GyroX = -99.99;
+  }
+  if (GyroY > 99.99) {
+    GyroY = 99.99;
+  } else if (GyroY < -99.99) {
+    GyroY = -99.99;
+  }
+  if (GyroZ > 99.99) {
+    GyroZ = 99.99;
+  } else if (GyroZ < -99.99) {
+    GyroZ = -99.99;
+  }
+  if (Speedaccel > 99.99) {
+    Speedaccel = 99.99;
+  } else if (Speedaccel <-99.99) {
+    Speedaccel = -99.99;
+  }
 
-  mylcd.Print_Number_Float(Speedaccel, 1, 1, 5 + yoffset, '.', 4, ' ');
-  mylcd.Print_Number_Float(AccelX, 1, 1, 35 + yoffset, '.', 4, ' ');
-  mylcd.Print_Number_Float(AccelY, 1, 1, 65 + yoffset, '.', 4, ' ');
-  mylcd.Print_Number_Float(AccelZ, 1, 1, 95 + yoffset, '.', 4, ' ');
-  mylcd.Print_Number_Float(GyroX, 1, 1, 125 + yoffset, '.', 4, ' ');
-  mylcd.Print_Number_Float(GyroY, 1, 1, 155 + yoffset, '.', 4, ' ');
-  mylcd.Print_Number_Float(GyroZ, 1, 1, 185 + yoffset, '.', 4, ' ');
+  mylcd.Print_Number_Float(Speedaccel, 1, 1, 5 + yoffset, '.', 3, ' ');
+  mylcd.Print_Number_Float(AccelX, 1, 1, 35 + yoffset, '.', 3, ' ');
+  mylcd.Print_Number_Float(AccelY, 1, 1, 65 + yoffset, '.', 3, ' ');
+  mylcd.Print_Number_Float(AccelZ, 1, 1, 95 + yoffset, '.', 3, ' ');
+  mylcd.Print_Number_Float(GyroX, 1, 1, 125 + yoffset, '.', 3, ' ');
+  mylcd.Print_Number_Float(GyroY, 1, 1, 155 + yoffset, '.', 3, ' ');
+  mylcd.Print_Number_Float(GyroZ, 1, 1, 185 + yoffset, '.', 3, ' ');
   mylcd.Set_Text_Size(2);
   if (tempAvg > 80) {
     mylcd.Set_Text_colour(0xF800);
