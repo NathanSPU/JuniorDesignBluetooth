@@ -154,12 +154,20 @@ void setup() {
     gzoffset += g.gyro.z;
 
   }
+  Serial.println(axoffset);
+  Serial.println(ayoffset);
+  Serial.println(azoffset);
   axoffset = axoffset/200;
   ayoffset = ayoffset/200;
-  azoffset = ayoffset/200;
+  azoffset = azoffset/200;
+  Serial.println(axoffset);
+  Serial.println(ayoffset);
+  Serial.println(azoffset);
+
   gxoffset = gxoffset/200;
   gyoffset = gyoffset/200;
   gzoffset = gzoffset/200;
+
   Serial.println("Calibration finished");
   if (displayMode) {
     mylcd.Set_Text_Size(3);
@@ -180,12 +188,14 @@ void setup() {
 
 void loop() { //gathers data in 0.1 second unless you do something like try to display it to slow it down
   previousTime = currentTime;                         // Previous time is stored before the actual time read
-  currentTime = millis();                             // Current time actual time read
-  elapsedTime = (currentTime - previousTime) / 1000;  // Divide by 1000 to get seconds
-  float currentTimeWrite = currentTime / 1000;
+
   /* Get new sensor events with the readings */
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
+
+  currentTime = millis();                             // Current time actual time read
+  elapsedTime = (currentTime - previousTime) / 1000;  // Divide by 1000 to get seconds
+  float currentTimeWrite = currentTime / 1000;
 
   //Collect all of the data
 
@@ -199,10 +209,11 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   float tempAvg = ((tempSun + tempAccel)/2) - 1;
 
   //Accelerometer gyroscope data
-  float gyroX = g.gyro.x-gxoffset;
-  float gyroY = g.gyro.y-gyoffset;
-  float gyroZ = g.gyro.z-gzoffset;
+  float gyroX = ((g.gyro.x-gxoffset)*(180/M_PI))*elapsedTime;
+  float gyroY = ((g.gyro.y-gyoffset)*(180/M_PI))*elapsedTime;
+  float gyroZ = ((g.gyro.z-gzoffset)*(180/M_PI))*elapsedTime;
 
+  delay(500);
   //Accelerometer acceleration data
 
   float AccelX = a.acceleration.x-axoffset;
@@ -211,10 +222,10 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
 
   //calulate vehicle speed and radial position,
 
-  float RadposX = (RadposX+ (gyroX * elapsedTime))*(180/M_PI); //convertd to degrees
-  float RadposY = (RadposY+ (gyroY * elapsedTime))*(180/M_PI);
-  float RadposZ = (RadposZ+ (gyroZ * elapsedTime))*(180/M_PI);
-  float Speedaccel = AccelY * elapsedTime;
+  RadposX += gyroX; //converted to degrees
+  RadposY += gyroY;
+  RadposZ += gyroZ;
+  Speedaccel = AccelY * elapsedTime;
 
   //Save to SD card
   char buffer[7];
@@ -268,13 +279,22 @@ void loop() { //gathers data in 0.1 second unless you do something like try to d
   // Serial.print(AccelZ);
   // Serial.println(" m/s^2");
 
-  // Serial.print("Rotation X: ");
-  // Serial.print(RadposX);
+  // Serial.print("Instant X: ");
+  // Serial.print(gyroX);
   // Serial.print(", Y: ");
-  // Serial.print(RadposY);
+  // Serial.print(gyroY);
   // Serial.print(", Z: ");
-  // Serial.print(RadposZ);
+  // Serial.print(gyroZ);
   // Serial.println(" deg");
+
+  Serial.print("Rotation X: ");
+  Serial.print(RadposX);
+  Serial.print(", Y: ");
+  Serial.print(RadposY);
+  Serial.print(", Z: ");
+  Serial.print(RadposZ);
+  Serial.println(" deg");
+  Serial.println(currentTime/1000);
 
   // Serial.print("Temp: ");
   // Serial.print(tempAccel);
